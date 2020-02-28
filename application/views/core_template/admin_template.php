@@ -37,7 +37,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>libraries/jquery-switch-button/jquery.switchButton.css">
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
+  <link rel="stylesheet" href="<?= BASE_ASSET; ?>libraries/js-scroll/style/jquery.jscrollpane.css" rel="stylesheet" media="all" />
 
 <!-- <script src="<?= base_url('assets/adminlte/bower_components') ?>/jquery/dist/jquery.min.js"></script> -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -261,7 +261,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <aside class="main-sidebar">
 
     <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+    <section class="sidebar" style="padding-top:0% !important">
 
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel">
@@ -400,10 +400,16 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
-
+<script>
+  var AdminLTEOptions = {
+    sidebarExpandOnHover: false,
+     navbarMenuSlimscroll: false,
+  };
+</script>
 <!-- jQuery 3 -->
 <!-- Bootstrap 3.3.7 -->
 <script src="<?= base_url('assets/adminlte/bower_components') ?>/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="<?= BASE_ASSET; ?>/adminlte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
 <script src="<?= base_url('assets/libraries/datatables/datatables.min.js') ?>"></script>  
 <!-- PACE -->
 <script src="<?= base_url('assets/adminlte/bower_components') ?>/PACE/pace.min.js"></script>
@@ -413,6 +419,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <!-- AdminLTE App -->
 <script src="<?= base_url('assets/adminlte/dist') ?>/js/adminlte.min.js"></script>
 <script src="<?= base_url('assets/libraries/toastr/build/toastr.min.js') ?>"></script>
+<script src="<?= BASE_ASSET; ?>libraries/js-scroll/script/jquery.jscrollpane.min.js"></script>
 
 
 <script type="text/javascript">

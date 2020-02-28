@@ -117,7 +117,7 @@
     function create_list($list, $child = false)
     {
         $ci =& get_instance();
-        $html = '<ul class="sidebar-menu" data-widget="tree">';
+        $html = '<ul class="sidebar-menu  sidebar-admin tree"  data-widget="tree">';
         foreach ($list as $key => $value) {
             //SIngle Menu
             $links = explode('/', $value['url']);
