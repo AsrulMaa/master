@@ -70,7 +70,7 @@ class Blog extends Backend {
 	public function create()
 	{
 		$data['title']	= 'Add User';
-		$data['page']	= 'Blog/form_user';
+		$data['page']	= 'Blog/create';
 		
 		$this->set($data);
 		$this->view($data);
@@ -79,29 +79,29 @@ class Blog extends Backend {
 	public function add_save()
 	{
 		if (!$_POST) {
-			$input = (object) $this->Blog->getDefaultValues();
+			$input = (object) $this->blog->getDefaultValues();
 		} else {
 			$input = (object) $this->input->post(null, true);
 		}
 
-		if ($this->Blog->validate()) {
+		if ($this->blog->validate()) {
 			
-			$save_user = $this->Blog->run($input);
+			$save_user = $this->blog->run($input);
 			if ($save_user) {
 				if ($this->input->post('save_type') == 'stay') {
 						$response['success'] = true;
 						$response['message'] = 'Berhasil menyimpan data, klik link untuk mengedit Blog'.
-							anchor('admin/Blog/edit/' . $save_user, ' Edit User'). ' atau klik'.
-							anchor('admin/Blog', ' kemabali ke list'). ' untuk melihat seluruh data';
+							anchor('admin/blog/edit/' . $save_user, ' Edit User'). ' atau klik'.
+							anchor('admin/blog', ' kemabali ke list'). ' untuk melihat seluruh data';
 				} else {
 					// set_message('Berhasil menyimoan data '.anchor('admin/Blog/edit/' . $save_user, 'Edit User'), 'success');
 	        		$response['success'] = true;
-					$response['redirect'] = site_url('admin/Blog');
+					$response['redirect'] = site_url('admin/blog');
 				} 
 
 			} else {
 				$response['success'] = false;
-				$response['message'] = 'gagal menyimpan data Blog';
+				$response['message'] = 'gagal menyimpan data blog';
 			}
 		}	else {
 			$response['success'] = false;

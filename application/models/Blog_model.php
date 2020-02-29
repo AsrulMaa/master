@@ -15,41 +15,27 @@ class Blog_model extends MY_Model {
 	{
 		return [
 			'id'		=> '',
-			'username'	=> '',
-			'email'	=> '',
-			'password'	=> '',
-			'password'	=> '',
-			'fullname'	=> '',
+			'title'	=> '',
+			'content'	=> '',
+			'status'	=> '',
+			'id_blog_categories'	=> '',
+			'tags'	=> '',
 			'id_role'	=> '',
 			'is_active'	=> '',
 			'avatar'	=> '',
 			'token'	=> '',
 			'created_at'	=> '',
 		];
+
 	}
 
 	public function getValidationRules()
 	{
 		$validationRules = [
 			[
-				'field' => 'username',
-				'label' => 'Username',
-				'rules' => 'trim|required',
-			],
-			[
-				'field' => 'email',
-				'label' => 'Email',
-				'rules' => 'trim|required|valid_email|is_unique[users.email]',
-			],
-			[
-				'field' => 'password',
-				'label' => 'Password',
-				'rules' => 'required',
-			],
-			[
-				'field' => 'role',
-				'label' => 'Role',
-				'rules' => 'required',
+				'field' => 'title',
+				'label' => 'Titel Artikel',
+				'rules' => 'required|callback_unique_slug',
 			],
 		];
 		return $validationRules;
@@ -63,15 +49,12 @@ class Blog_model extends MY_Model {
 			$user_avatar_name = $data->user_avatar_name;
 
 			$save_data = [
-				'fullname' 	=> $data->fullname,
-				'avatar' 		=> 'default.png',
-				'created_at'	=> date('Y-m-d H:i:s'),
-				'username'	=> $data->username,
-				'email'		=> strtolower($data->email),
-				'password'	=> hashEncrypt($data->password),
-				'id_role'	=> $data->role,
-				'is_active'	=> 1,
-				'token'		=> '',
+				'title' 				=> $data->title,
+				'content' 				=> $data->content,
+				'status'				=> $data->status,
+				'id_blog_categories'	=> $data->id_blog_categories,
+				'tags'					=> serialize($data->tags),
+				'publish_at'			=> date('Y-m-d'),
 			];
 
 			if (!empty($user_avatar_name)) {
@@ -85,7 +68,7 @@ class Blog_model extends MY_Model {
 				@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
 						FCPATH . 'uploads/user/' . $user_avatar_name_copy);
 
-				$save_data['avatar'] = $user_avatar_name_copy;
+				$save_data['images'] = serialize($user_avatar_name_copy);
 			}
 
 			return $this->create($save_data);

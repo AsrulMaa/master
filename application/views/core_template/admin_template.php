@@ -59,7 +59,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
     var HTTP_REFERER = "<?= isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '/' ; ?>";
     var csrf = '<?= $this->security->get_csrf_token_name(); ?>';
     var token = '<?= $this->security->get_csrf_hash(); ?>';
-    var BASE_URL = '<?= base_url() ?>';
+    var BASE_URL = '<?= BASE_URL ?>';
+    var BASE_ASSET = '<?= BASE_ASSET ?>';
     var csrfData = {};
 
     csrfData['<?= $this->security->get_csrf_token_name(); ?>'] = token;

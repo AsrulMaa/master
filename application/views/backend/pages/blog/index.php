@@ -66,10 +66,12 @@
                                <?= $r->fullname ?>
                             </td>
                             <td>
-                              <div class="text-center"><a href="<?= base_url("admin/blog/view/$r->id") ?>" class="btn btn-sm btn-info btn-flat pull-left edit" title="Edit" id="edit" data-id = "<?= $r->id ?> "><i class="fa fa-eye"></i>View </a>
+                              <button type="button" class="btn btn-sm btn-danger delete" title="Delete" id="delete" data-id = "<?= $r->id ?>" ><i class="fa fa-trash"></i>Delete</button>
+
+                              <!-- <div class="text-center"><a href="<?= base_url("admin/blog/view/$r->id") ?>" class="btn btn-sm btn-info btn-flat pull-left edit" title="Edit" id="edit" data-id = "<?= $r->id ?> "><i class="fa fa-eye"></i>View </a>
 
                                <div class="text-center"><a href="<?= base_url("admin/blog/edit/$r->id") ?>" class="btn btn-sm btn-warning edit" title="Edit" id="edit" data-id = "<?= $r->id ?> "><i class="fa fa-pencil"></i>Edit </a>
-                                <button type="button" class="btn btn-sm btn-danger delete" title="Delete" id="delete" data-id = "<?= $r->id ?>" ><i class="fa fa-trash"></i>Delete</button></div>
+                                <button type="button" class="btn btn-sm btn-danger delete" title="Delete" id="delete" data-id = "<?= $r->id ?>" ><i class="fa fa-trash"></i>Delete</button></div> -->
                             </td>
                         </tr>
                     <?php endforeach ?>
