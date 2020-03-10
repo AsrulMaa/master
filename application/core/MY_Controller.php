@@ -74,6 +74,208 @@ class MY_Controller extends CI_Controller
 
 
 
+    /**
+    * Upload Files tmp
+    * 
+    * @param Array $data 
+    *
+    * @return JSON
+    */
+    public function upload_file($data = [])
+    {
+        $default = [
+            'uuid'          => '', 
+            'allowed_types' => '*', 
+            'max_size'      => '', 
+            'max_width'     => '', 
+            'max_height'    => '', 
+            'upload_path'   => './uploads/tmp/',
+            'input_files'   => 'qqfile',
+            'table_name'    => '',
+        ];
+
+        foreach ($data as $key => $value) {
+            if (isset($default[$key])) {
+                $default[$key] = $value;
+            }
+        }
+
+        $dir = FCPATH . $default['upload_path'] . $default['uuid'];
+        if (!is_dir($dir)) {
+            mkdir($dir);
+        }
+
+        if (empty($default['file_name'])) {
+            $default['file_name'] = date('Y-m-d').$default['table_name'].date('His');
+        }
+
+        $config = [
+            'upload_path'       => $default['upload_path'] . $default['uuid'] . '/',
+            'allowed_types'     => $default['allowed_types'],
+            'max_size'          => $default['max_size'],
+            'max_width'         => $default['max_width'],
+            'max_height'        => $default['max_height'],
+            'file_name'         => $default['file_name']
+        ];
+        
+        $this->load->library('upload', $config);
+        $this->load->helper('file');
+
+        if ( ! $this->upload->do_upload('qqfile')){
+            $result = [
+                'success'   => false,
+                'error'     =>  $this->upload->display_errors()
+            ];
+
+            return json_encode($result);
+        } else {
+            $upload_data = $this->upload->data();
+
+            $result = [
+                'uploadName'    => $upload_data['file_name'],
+                'previewLink'  => $dir.'/'.$upload_data['file_name'],
+                'success'       => true,
+            ];
+
+            return json_encode($result);
+        }
+    }
+
+    /**
+    * Delete Files tmp
+    * 
+    * @param Array $data 
+    *
+    * @return JSON
+    */
+    public function delete_file($data = [])
+    {
+        $default = [
+            'uuid'              => '', 
+            'delete_by'         => '', 
+            'field_name'        => 'image', 
+            'upload_path_tmp'   => './uploads/tmp/',
+            'table_name'        => 'test',
+            'primary_key'       => 'id',
+            'upload_path'       => 'uploads/blog/'
+        ];
+
+        foreach ($data as $key => $value) {
+            if (isset($default[$key])) {
+                $default[$key] = $value;
+            }
+        }
+
+        if (!empty($default['uuid'])) {
+            $this->load->helper('file');
+            $delete_file = false;
+
+            if ($default['delete_by'] == 'id') {
+                $row = $this->db->get_where($default['table_name'], [$default['primary_key'] => $default['uuid']])->row();
+                if ($row) {
+                    $path = FCPATH . $default['upload_path'] . $row->{$default['field_name']};
+                }
+
+                if (isset($default['uuid'])) {
+                    if (is_file($path)) {
+                        $delete_file = unlink($path);
+                        $this->db->where($default['primary_key'], $default['uuid']);
+                        $this->db->update($default['table_name'], [$default['field_name'] => '']);
+                    }
+                }
+            } else {
+                $path = FCPATH . $default['upload_path_tmp'] . $default['uuid'] . '/';
+                $delete_file = delete_files($path, true);
+            }
+
+            if (isset($default['uuid'])) {
+                if (is_dir($path)) {
+                    rmdir($path);
+                }
+            }
+
+            if (!$delete_file) {
+                $result = [
+                    'error' =>  'Error delete file'
+                ];
+
+                return json_encode($result);
+            } else {
+                $result = [
+                    'success' => true,
+                ];
+
+                return json_encode($result);
+            }
+        }
+    }
+
+    /**
+    * Get Files
+    * 
+    * @param Array $data 
+    *
+    * @return JSON
+    */
+    public function get_file($data = [])
+    {
+        $default = [
+            'uuid'              => '', 
+            'delete_by'         => '', 
+            'field_name'        => 'image', 
+            'table_name'        => 'test',
+            'primary_key'       => 'id',
+            'upload_path'       => 'uploads/blog/',
+            'delete_endpoint'   => 'administrator/blog/delete_image_file'
+        ];
+
+        foreach ($data as $key => $value) {
+            if (isset($default[$key])) {
+                $default[$key] = $value;
+            }
+        }
+        
+        $row = $this->db->get_where($default['table_name'], [$default['primary_key'] => $default['uuid']])->row();
+
+        if (!$row) {
+            $result = [
+                'error' =>  'Error getting file'
+            ];
+
+            return json_encode($result);
+        } else {
+            if (!empty($row->{$default['field_name']})) {
+                if (strpos($row->{$default['field_name']}, ',')) {
+                    foreach (explode(',', $row->{$default['field_name']}) as $filename) {
+                        $result[] = [
+                            'success'               => true,
+                            'thumbnailUrl'          => check_is_image_ext(base_url($default['upload_path'] . $filename)),
+                            'id'                    => 0,
+                            'name'                  => $row->{$default['field_name']},
+                            'uuid'                  => $row->{$default['primary_key']},
+                            'deleteFileEndpoint'    => base_url($default['delete_endpoint']),
+                            'deleteFileParams'      => ['by' => $default['delete_by']]
+                        ];
+                    }
+                } else {
+                    $result[] = [
+                        'success'               => true,
+                        'thumbnailUrl'          => check_is_image_ext(base_url($default['upload_path'] . $row->{$default['field_name']})),
+                        'id'                    => 0,
+                        'name'                  => $row->{$default['field_name']},
+                        'uuid'                  => $row->{$default['primary_key']},
+                        'deleteFileEndpoint'    => base_url($default['delete_endpoint']),
+                        'deleteFileParams'      => ['by' => $default['delete_by']]
+                    ];
+                }
+
+                return json_encode($result);
+            }
+        }
+    }
+
+
+
 
 
 }

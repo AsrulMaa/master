@@ -30,7 +30,22 @@
                                 <input type="checkbox" class="flat-red check" name="delete_id[]" value="<?= $r->id ?>">
                             </td>
                             <td width="85px">
-                                <div class="img img-thumbnail img-responsive">
+                              <?php foreach (explode(',', $r->images) as $file): ?>
+                              <?php if (!empty($file)): ?>
+                                <?php if (is_image($file)): ?>
+                                <a class="fancybox" rel="group" href="<?= BASE_URL . 'uploads/blog/' . $file; ?>">
+                                  <img src="<?= BASE_URL . 'uploads/blog/' . $file; ?>" class="image-responsive" alt="image blog" title="image blog" width="40px">
+                                </a>
+                                <?php else: ?>
+                                  <a href="<?= BASE_URL . 'administrator/file/download/blog/' . $file; ?>">
+                                   <img src="<?= get_icon_file($file); ?>" class="image-responsive image-icon" alt="image blog" title="image <?= $file; ?>" width="40px"> 
+                                 </a>
+                                <?php endif; ?>
+                              <?php endif; ?>
+                              <?php endforeach; ?>
+
+
+                                <!-- <div class="img img-thumbnail img-responsive">
                                 <?php if (is_file(FCPATH . 'public/blog/post/' . $r->images)): ?>
                                 <?php $img_url = BASE_URL . 'public/blog/post/' . $r->images; ?>
                                 <?php else: ?>
@@ -38,7 +53,7 @@
                                 <?php endif; ?>
                                 <a class="fancybox" rel="group" href="<?= $img_url; ?>">
                                   <img src="<?= $img_url; ?>" alt="Person" width="50" height="50">
-                                </a>
+                                </a> -->
                                 
                               </div>
                                 

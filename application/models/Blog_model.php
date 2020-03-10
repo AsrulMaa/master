@@ -35,7 +35,7 @@ class Blog_model extends MY_Model {
 			[
 				'field' => 'title',
 				'label' => 'Titel Artikel',
-				'rules' => 'required|callback_unique_slug',
+				'rules' => 'required',
 			],
 		];
 		return $validationRules;

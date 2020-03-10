@@ -69,7 +69,7 @@ class Blog extends Backend {
 
 	public function create()
 	{
-		$data['title']	= 'Add User';
+		$data['title']	= 'Add Article';
 		$data['page']	= 'Blog/create';
 		
 		$this->set($data);
@@ -84,14 +84,53 @@ class Blog extends Backend {
 			$input = (object) $this->input->post(null, true);
 		}
 
+
 		if ($this->blog->validate()) {
-			
-			$save_user = $this->blog->run($input);
-			if ($save_user) {
+			$slug = url_title(substr($this->input->post('slug'), 0, 100));
+			$save_data = [
+				'title' => $this->input->post('title'),
+				'slug' => $slug,
+				'content' => $this->input->post('content'),
+				'tags' => $this->input->post('tags'),
+				'id_blog_categories' => $this->input->post('id_blog_categories'),
+				'id_users' => user('id'),
+				'status' => $this->input->post('status'),
+				'created_at' => date('Y-m-d H:i:s'),
+			];
+
+
+			if (!is_dir(FCPATH . '/uploads/blog/')) {
+				mkdir(FCPATH . '/uploads/blog/');
+			}
+
+			if (count((array) $this->input->post('blog_image_name'))) {
+				foreach ((array) $_POST['blog_image_name'] as $idx => $file_name) {
+					$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
+
+					rename(FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' .  $file_name, 
+							FCPATH . 'uploads/blog/' . $blog_image_name_copy);
+
+					$listed_image[] = $blog_image_name_copy;
+
+					if (!is_file(FCPATH . '/uploads/blog/' . $blog_image_name_copy)) {
+						echo json_encode([
+							'success' => false,
+							'message' => 'Error uploading file'
+							]);
+						exit;
+					}
+				}
+
+				$save_data['images'] = implode($listed_image, ',');
+			}
+
+
+			$save_blog = $this->blog->create($save_data);
+			if ($save_blog) {
 				if ($this->input->post('save_type') == 'stay') {
 						$response['success'] = true;
 						$response['message'] = 'Berhasil menyimpan data, klik link untuk mengedit Blog'.
-							anchor('admin/blog/edit/' . $save_user, ' Edit User'). ' atau klik'.
+							anchor('admin/blog/edit/' . $save_blog, ' Edit User'). ' atau klik'.
 							anchor('admin/blog', ' kemabali ke list'). ' untuk melihat seluruh data';
 				} else {
 					// set_message('Berhasil menyimoan data '.anchor('admin/Blog/edit/' . $save_user, 'Edit User'), 'success');
@@ -227,298 +266,66 @@ class Blog extends Backend {
 	
 
 	/**
-	* delete Blog
-	*
-	* @var $id String
-	*/
-	private function _remove($id)
-	{
-		$image = $this->Blog->find($id)->avatar;
-		$this->load->helper('file');
-		$delete_file = '';
-		$path = FCPATH . 'uploads/user/'.$image;
-		if (file_exists($path)) {
-			if ($image != 'default.png') {
-				$delete_file = unlink($path);
-				//$delete_files = delete_files($path);
-			}
-		} else {
-			$delete_file = false;
-		}
-		$delete = $this->Blog->where('id', $id)->delete();
-		if ($delete) {
-			return true;
-		}
-
-		
-	}
-
-
-
-	public function deleteImage($image)
-	{
-		if (!empty($image)) {
-			$this->load->helper('file');
-			$delete_file = '';
-			$path = FCPATH . 'uploads/user/'.$image;
-			if (file_exists($path)) {
-				if ($image != 'default.png') {
-					$delete_file = unlink($path);
-				}
-			}
-				
-			if ($delete_file) {
-				return true;
-			}	
-		}
-	}
-
-
-
-	/**
-	* Upload Image User
-	* 
+	* Upload Image Blog	* 
 	* @return JSON
 	*/
-	public function upload_avatar_file()
+	public function upload_image_file()
 	{
-		// if (!$this->is_allowed('user_add', false)) {
-		// 	return $this->response([
-		// 		'success' => false,
-		// 		'message' => cclang('sorry_you_do_not_have_permission_to_access')
-		// 		]);
-		// }
-
 		$uuid = $this->input->post('qquuid');
 
-		mkdir(FCPATH . '/uploads/tmp/' . $uuid);
-
-		$config = [
-			'upload_path' 		=> './uploads/tmp/' . $uuid . '/',
-			'allowed_types' 	=> 'png|jpeg|jpg|gif',
-			'max_size'  		=> '1000'
-		];
-		
-		$this->load->library('upload', $config);
-		$this->load->helper('file');
-
-		if ( ! $this->upload->do_upload('qqfile')){
-			$result = [
-				'success' 	=> false,
-				'error' 	=>  $this->upload->display_errors()
-			];
-
-    		return $this->response($result);
-		}
-		else{
-			$upload_data = $this->upload->data();
-
-			$result = [
-				'uploadName' 	=> $upload_data['file_name'],
-				'success' 		=> true,
-			];
-
-    		return $this->response($result);
-		}
-	}
-
-	/**
-	* Delete Image User
-	* 
-	* @return JSON
-	*/
-	public function delete_avatar_file($uuid)
-	{
-		// if (!$this->is_allowed('user_delete', false)) {
-		// 	return $this->response([
-		// 		'success' => false,
-		// 		'message' => cclang('sorry_you_do_not_have_permission_to_access')
-		// 		]);
-		// }
-
-		if (!empty($uuid)) {
-			$this->load->helper('file');
-
-			$delete_by = $this->input->get('by');
-			$delete_file = false;
-
-			if ($delete_by == 'id') {
-				$user = $this->Blog->where('id', $uuid)->first();
-				$path = FCPATH . 'uploads/user/'.$user->avatar;
-				if ($user->avatar != 'default.png') {
-					if (isset($uuid)) {
-						if (is_file($path)) {
-							$delete_file = unlink($path);
-							$this->Blog->where('id', $uuid)->update(['avatar' => '']);
-						}
-					}	
-				}
-				
-
-				
-			} else {
-				$path = FCPATH . '/uploads/tmp/' . $uuid . '/';
-				$delete_file = delete_files($path, true);
-			}
-
-			if (isset($uuid)) {
-				if (is_dir($path)) {
-					rmdir($path);
-				}
-			}
-
-			if (!$delete_file) {
-				$result = [
-					'error' =>  'Error delete file'
-				];
-
-	    		return $this->response($result);
-			} else {
-				$result = [
-					'success' => true,
-				];
-
-	    		return $this->response($result);
-			}
-		}
-	}
-
-	/**
-	* Get Image User
-	* 
-	* @return JSON
-	*/
-	public function get_avatar_file($id)
-	{
-		// if (!$this->is_allowed('user_update', false)) {
-		// 	return $this->response([
-		// 		'success' => false,
-		// 		'message' => cclang('sorry_you_do_not_have_permission_to_access')
-		// 		]);
-		// }
-
-		$this->load->helper('file');
-		
-		$user = $this->Blog->where('id', $id)->first();
-
-		if (!$user) {
-			$result = [
-				'error' =>  'Error getting file'
-			];
-
-    		return $this->response($result);
-		} else {
-			if (!empty($user->avatar)) {
-				$result[] = [
-					'success' 				=> true,
-					'thumbnailUrl' 			=> base_url('uploads/user/'.$user->avatar),
-					'id' 					=> 0,
-					'name' 					=> $user->avatar,
-					'uuid' 					=> $user->id,
-					'deleteFileEndpoint' 	=> base_url('admin/Blog/delete_avatar_file'),
-					'deleteFileParams'		=> ['by' => 'id']
-				];
-
-	    		return $this->response($result);
-			}
-		} 
-	}
-
-
-	public function profile()
-	{
-		$id = $this->session->userdata('id');
-		if (!$_POST) {
-			$input = (object) $this->Blog->getDefaultValues();
-		} else {
-			$input = (object) $this->input->post(null, true);
-		}
-		$data['input'] = ['password' => hashEncrypt($this->input->post('password'))];	
-
-		$validationRules = [
-			[
-				'field'	=> 'password',
-				'label'	=> 'Password',
-				'rules'	=> 'required|min_length[5]',
-				'errors'	=> array('required' => ' %s harus di isi', 'min_length' => '%s harus minimal 5 karakter')
-			],
-
-			[
-				'field'	=> 'password_confirmation',
-				'label'	=> 'Konfirmasi Password',
-				'rules'	=> 'required|matches[password]',
-				'errors'	=> array('required' => '%s harus di isi', 'matches' => 'Konfirmasi password tidak benar / tidak match')
-			],
-		];
-		$this->load->library('form_validation');
-		$validate = $this->form_validation->set_rules($validationRules);
-
-		if (!$validate->run()) {
-			$data['title']	= 'Profile';
-			$data['page']	= 'Blog/profile';
-			$data['form_action'] = base_url('admin/Blog/profile/').$this->session->userdata('id');
-			$data['profile'] = $this->Blog->select(
-					[
-						'Blog.id', 'Blog.username', 'Blog.email', 'Blog.fullname', 'Blog.is_active', 'Blog.avatar', 'Blog.token', 'Blog.created_at', 'Blog.update_at', 'Blog.last_login','role.role'
-					])
-				->join('role','left')
-				->where('Blog.id', $id)
-				->first();
-			$this->set($data);
-			$this->view($data);
-			return;
-		}		
-
-  		if ($this->Blog->where('id', $id)->update($data['input'])) {
-			$this->session->set_flashdata('success', 'data berhasil di perbaharui');
-		} else {
-			$this->session->set_flashdata('error', 'gagal mengupdate data');
-		}
-
-		redirect(base_url('admin/Blog/profile'));
-		
-	}
-
-	public function edit_profile()
-	{
-		$id = $this->session->userdata('id');
-		$data['title']	= 'Profile';
-		$data['page']	= 'Blog/edit_profile';
-		$data['input'] = $this->Blog->select(
-				[
-					'Blog.id', 'Blog.username', 'Blog.email', 'Blog.fullname', 'Blog.is_active', 'Blog.avatar', 'Blog.token', 'Blog.created_at', 'Blog.update_at', 'Blog.last_login','role.role','Blog.id_role'
-				])
-			->join('role','left')
-			->where('Blog.id', $id)
-			->first();
-
-  		
-		$this->set($data);
-		$this->view($data);
-	}
-
-	public function set_status()
-	{
-
-		$status = $this->input->post('status');
-		$id = $this->input->post('id');
-		$update_status = $this->Blog->where('id', $id)->update([
-			'is_active' => $status == 'inactive' ? 0 : 1
+		echo $this->upload_file([
+			'uuid' 		 	=> $uuid,
+			'table_name' 	=> 'blog_post',
+			'allowed_types' => 'jpg|jpeg|png',
 		]);
-		
-		if ($update_status) {
-			$this->response = [
-				'success' => true,
-				'message' => 'User status updated',
-			];
-		} else {
-			$this->response = [
-				'success' => false,
-				'message' => 'Data not change.'
-			];
-		}
-		return $this->response($this->response);
 	}
+
+	/**
+	* Delete Image Blog	* 
+	* @return JSON
+	*/
+	public function delete_image_file($uuid)
+	{
+
+		echo $this->delete_file([
+            'uuid'              => $uuid, 
+            'delete_by'         => $this->input->get('by'), 
+            'field_name'        => 'image', 
+            'upload_path_tmp'   => './uploads/tmp/',
+            'table_name'        => 'blog',
+            'primary_key'       => 'id',
+            'upload_path'       => 'uploads/blog/'
+        ]);
+	}
+
+	/**
+	* Get Image Blog	* 
+	* @return JSON
+	*/
+	public function get_image_file($id)
+	{
+		if (!$this->is_allowed('blog_update', false)) {
+			echo json_encode([
+				'success' => false,
+				'message' => 'Image not loaded, you do not have permission to access'
+				]);
+			exit;
+		}
+
+		$blog = $this->model_blog->find($id);
+
+		echo $this->get_file([
+            'uuid'              => $id, 
+            'delete_by'         => 'id', 
+            'field_name'        => 'image', 
+            'table_name'        => 'blog',
+            'primary_key'       => 'id',
+            'upload_path'       => 'uploads/blog/',
+            'delete_endpoint'   => 'administrator/blog/delete_image_file'
+        ]);
+	}
+
+
 
 
 	

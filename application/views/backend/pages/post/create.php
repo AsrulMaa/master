@@ -84,9 +84,9 @@
                       </label>
                       <div class="col-sm-9">
                           <select  class="form-control chosen chosen-select" name="status" id="status" data-placeholder="Select Status" >
-                              <option value="publish">publish</option>
-                              <option value="draft">draft</option>
-                              <option value="archive">archive</option>
+                              <option value="1">publish</option>
+                              <option value="2">draft</option>
+                              <option value="3">archive</option>
                               </select>
                       </div>
                   </div>

@@ -177,6 +177,9 @@
             ->where('users.id', $id)->get();
         foreach ($users as $row) {
             switch ($get) {
+                case 'id':
+                    return $row->id;
+                    break;
                 case 'photo':
                     return (STORAGEUSER.'/'.$row->avatar);
                     break;
@@ -412,3 +415,50 @@ function display_menu_module($parent, $level, $menu_type, $ignore_active = false
 
     return $ret;
 }
+
+function get_icon_file($file_name = '') {
+        $extension_list = [
+            'avi' => ['avi'], 
+            'css' => ['css'], 
+            'csv' => ['csv'], 
+            'eps' => ['eps'], 
+            'html' => ['html', 'htm'], 
+            'jpg' => ['jpg', 'jpeg'], 
+            'mov' => ['mov', 'mp4', '3gp'], 
+            'mp3' => ['mp3'], 
+            'pdf' => ['pdf'], 
+            'png' => ['png'], 
+            'ppt' => ['ppt', 'pptx'], 
+            'rar' => ['rar'], 
+            'raw' => ['raw'], 
+            'ttf' => ['ttf'],
+            'txt' => ['txt'], 
+            'wav' => ['wav'], 
+            'xls' => ['xls', 'xlsx'], 
+            'zip' => ['zip'], 
+            'doc' => ['docx', 'doc']
+        ];
+
+        $file_name_arr = explode('.', $file_name);
+        if (is_array($file_name_arr)) {
+            foreach ($extension_list as $ext => $list_ext) {
+                if (in_array(end($file_name_arr), $list_ext)) {
+                    return BASE_ASSET . 'img/icon/' . $ext . '.png'; 
+                }
+            }
+        }
+
+        return BASE_ASSET . 'img/icon/any.png';
+    }
+
+    function is_image($filename = '') {
+        $array = explode('.', $filename);
+        $extension = strtolower(end($array));
+        $list_image_ext = ['', 'png', 'jpg', 'jpeg', 'gif'];
+
+        if (array_search($extension, $list_image_ext)) {
+            return TRUE;
+        }
+
+        return FALSE;
+    }

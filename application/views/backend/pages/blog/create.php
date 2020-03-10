@@ -21,7 +21,7 @@
                             </div>
                             <!-- /.widget-user-image -->
                             <h3 class="widget-user-username">Blog</h3>
-                            <h5 class="widget-user-desc">New</h5>
+                            <h5 class="widget-user-desc">Post</h5>
                         </div>
                        
                          
@@ -50,7 +50,7 @@
                         
                         <div class="message"></div>
                         <div class="row-fluid col-md-12">
-                           <button class="btn btn-flat btn-primary btn_save btn_action" id="btn_save" data-stype='stay' title="Simpan Data (Ctrl+s)">
+                           <button  type="button" class="btn btn-flat btn-primary btn_save btn_action" id="btn_save" data-stype='stay' title="Simpan Data (Ctrl+s)">
                             <i class="fa fa-save" ></i> Save
                             </button>
                             <a class="btn btn-flat btn-info btn_save btn_action btn_save_back" id="btn_save" data-stype='back' title="Save and Go to List (Ctrl+d)">
@@ -162,6 +162,100 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
+
+   $(document).on('keyup', '#title', function(event) {
+      var link = $(this).val().replaceAll(/[^0-9a-z]/gi, '-').replaceAll(/_+/g, '-').toLowerCase();
+      var title = $(this).val().replaceAll(/[^0-9a-z ]/gi, ' ').toLowerCase().replaceAll(/ +/g, ' ').toLowerCase();
+
+      $('.blog-slug').html(link);
+      $('#title').val(title);
+    });
+
+
+    $(document).on('focusout', '.blog-slug', function(event) {
+      var link = $(this).html().replaceAll(/[^0-9a-z]/gi, '-').replaceAll(/-+/g, '-').toLowerCase();
+
+      $('.blog-slug').html(link);
+    });
+      
+
+      // CKEDITOR.replace('content'); 
+      // var content = CKEDITOR.instances.content;
+                   
+      $('#btn_cancel').click(function(){
+        swal({
+            title: "Anda yakin ?",
+            text: "Kembali Kehaalamna list article ",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes!",
+            cancelButtonText: "No!",
+            closeOnConfirm: true,
+            closeOnCancel: true
+          },
+          function(isConfirm){
+            if (isConfirm) {
+              window.location.href = BASE_URL + 'admin/blog';
+            }
+          });
+    
+        return false;
+      }); /*end btn cancel*/
+    
+      $('.btn_save').click(function(){
+        $('.message').fadeOut();
+        //$('#content').val(content.getData());
+                    
+        var form_blog = $('#form_blog');
+        var data_post = form_blog.serializeArray();
+        var save_type = $(this).attr('data-stype');
+
+        data_post.push({name: 'save_type', value: save_type});
+        data_post.push({name: 'slug', value: $('.blog-slug').html()});
+    
+        $('.loading').show();
+    
+        $.ajax({
+          url: BASE_URL + '/admin/blog/add_save',
+          type: 'POST',
+          dataType: 'json',
+          data: data_post,
+        })
+        .done(function(res) {
+          if(res.success) {
+            
+            if (save_type == 'back') {
+              window.location.href = res.redirect;
+              return;
+            }
+    
+            $('.message').printMessage({message : res.message});
+            $('.message').fadeIn();
+            resetForm();
+            $('#blog_image_galery').find('li').each(function() {
+               $('#blog_image_galery').fineUploader('deleteFile', $(this).attr('qq-file-id'));
+            });
+            $('.chosen option').prop('selected', false).trigger('chosen:updated');
+            //content.setData('');
+                
+          } else {
+            $('.message').printMessage({message : res.message, type : 'warning'});
+          }
+    
+        })
+        .fail(function() {
+          $('.message').printMessage({message : 'Error save data', type : 'warning'});
+        })
+        .always(function() {
+          $('.loading').hide();
+          $('html, body').animate({ scrollTop: $(document).height() }, 2000);
+        });
+    
+        return false;
+      }); /*end btn save*/
+
+
 	 $('#blog_image_galery').fineUploader({
         template: 'qq-template-gallery',
         request: {
